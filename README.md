@@ -1,4 +1,4 @@
-# DALIndex
+# DALindex
 ---
 
 ## Getting Started
