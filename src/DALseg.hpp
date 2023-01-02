@@ -249,6 +249,7 @@ public:
     bool index_exists_dp(int index, Type_Ts lowerLimit);
     bool index_exists_buffer(int index, Type_Ts lowerLimit);
     void print();
+    uint64_t get_total_size_in_bytes();
 
     friend class DALroot<Type_Key,Type_Ts>;
 };
@@ -1734,4 +1735,11 @@ inline void DALseg<Type_Key,Type_Ts>::print()
         }
         cout << endl;
     }
+}
+
+template <class Type_Key, class Type_Ts>
+inline uint64_t DALseg<Type_Key,Type_Ts>::get_total_size_in_bytes()
+{
+    return sizeof(int)*8 + sizeof(Type_Ts) + sizeof(double) + sizeof(Type_Key)*2 + sizeof(vector<pair<Type_Key,Type_Ts>>)*2 +
+    sizeof(pair<Type_Key,Type_Ts>)*(m_numPairBuffer + m_numPair) + sizeof(DALseg<Type_Key,Type_Ts>*)*2; 
 }

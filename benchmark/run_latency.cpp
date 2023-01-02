@@ -604,6 +604,12 @@ int main(int argc, char** argv)
             // run_carmi(data); //Segmentation fault
             run_imtree(data);
             break;
+        case 4:
+            run_pgm(data);
+            break;
+        case 5:
+            run_btree(data);
+            break;
     }
     #else
     run_dalindex(data);

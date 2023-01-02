@@ -4,7 +4,32 @@
 
 using namespace std;
 
-//Gives segmentation faults
+//CARMI: gives segmentation faults (Therefore not included in baselines)
+
+template<class Type_Key, class Type_Ts>
+inline void carmi_erase( CARMIMap<Type_Key,Type_Ts> & carmi,
+                      pair<Type_Key, Type_Ts> & arrivalTuple)
+{
+    vector<Type_Key> deleteKeys;
+    deleteKeys.reserve(1000); //Predefined size to prevent vector extending
+    Type_Ts lowerLimit =  ((double)arrivalTuple.second - TIME_WINDOW < numeric_limits<Type_Ts>::min()) 
+                            ? numeric_limits<Type_Ts>::min(): arrivalTuple.second - TIME_WINDOW;
+
+    auto it = carmi.begin();
+    while (it != carmi.end())
+    {
+        if (it->second < lowerLimit)
+        {
+            deleteKeys.push_back(it->first);
+        }
+        it++;
+    }
+
+    for (auto &key:deleteKeys)
+    {
+        carmi.erase(key);
+    }
+}
 
 template<class Type_Key, class Type_Ts>
 inline void carmi_range_search(  CARMIMap<Type_Key,Type_Ts> & carmi,

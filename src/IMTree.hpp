@@ -41,6 +41,8 @@ public:
     void insert(pair<Type_Key,Type_Ts> & arrivalTuple);
 
     void merge(Type_Ts & newTimeStamp);
+
+    uint64_t get_total_size_in_bytes();
 };
 
 
@@ -283,4 +285,26 @@ void IMTree<Type_Key,Type_Ts>::merge(Type_Ts & newTimeStamp)
     m_insertionTree.clear();
 
     m_searchTree.bulk_load(newSearchTree.begin(),newSearchTree.end());
+}
+
+template <class Type_Key, class Type_Ts>
+inline uint64_t IMTree<Type_Key,Type_Ts>::get_total_size_in_bytes()
+{
+    struct node
+    {
+        unsigned short level;
+        unsigned short slotuse;
+    };
+    
+    auto searchTreeStats = m_searchTree.get_stats();
+    uint64_t searchTreeSize = sizeof(m_searchTree) + sizeof(node) * (searchTreeStats.leaves + searchTreeStats.innernodes) + 
+    sizeof(Type_Key) * searchTreeStats.innerslots * searchTreeStats.innernodes + sizeof(node*) * (searchTreeStats.innerslots+1) * searchTreeStats.innernodes +
+    sizeof(Type_Key) * searchTreeStats.leafslots * searchTreeStats.leaves + sizeof(Type_Ts) * searchTreeStats.leafslots * searchTreeStats.leaves + sizeof(node*)*2;
+
+    auto insertionTreeStats = m_insertionTree.get_stats();
+    uint64_t insertionTreeSize = sizeof(m_insertionTree) + sizeof(node) * (insertionTreeStats.leaves + insertionTreeStats.innernodes) + 
+    sizeof(Type_Key) * insertionTreeStats.innerslots * insertionTreeStats.innernodes + sizeof(node*) * (insertionTreeStats.innerslots+1) * insertionTreeStats.innernodes +
+    sizeof(Type_Key) * insertionTreeStats.leafslots * insertionTreeStats.leaves + sizeof(Type_Ts) * insertionTreeStats.leafslots * insertionTreeStats.leaves + sizeof(node*)*2;
+
+    return sizeof(int) + searchTreeSize + insertionTreeSize;
 }

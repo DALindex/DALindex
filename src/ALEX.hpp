@@ -5,6 +5,32 @@
 using namespace std;
 
 template<class Type_Key, class Type_Ts>
+inline void alex_erase( alex::Alex<Type_Key,Type_Ts> & alex, 
+                        pair<Type_Key, Type_Ts> & arrivalTuple)
+{
+    vector<Type_Key> deleteKeys;
+    deleteKeys.reserve(1000); //Predefined size to prevent vector extending
+    Type_Ts lowerLimit =  ((double)arrivalTuple.second - TIME_WINDOW < numeric_limits<Type_Ts>::min()) 
+                            ? numeric_limits<Type_Ts>::min(): arrivalTuple.second - TIME_WINDOW;
+
+    auto itStart = alex.begin();
+    auto itEnd = alex.end();
+    while (itStart != itEnd)
+    {
+        if (itStart.payload() < lowerLimit)
+        {
+            deleteKeys.push_back(itStart.key());
+        }
+        itStart++;
+    }
+
+    for (auto &key:deleteKeys)
+    {
+        alex.erase(key);
+    }
+}
+
+template<class Type_Key, class Type_Ts>
 inline void alex_range_search(  alex::Alex<Type_Key,Type_Ts> & alex,
                                 pair<Type_Key, Type_Ts> & arrivalTuple, Type_Key & searchRange, vector<pair<Type_Key, Type_Ts>> & searchResult)
 {
@@ -95,4 +121,10 @@ inline bool alex_point_lookup(  alex::Alex<Type_Key,Type_Ts> & alex,
         return true;
     }
     return false;
+}
+
+template<class Type_Key, class Type_Ts>
+inline uint64_t alex_get_total_size_in_bytes(  alex::Alex<Type_Key,Type_Ts> & alex)
+{
+   return static_cast<uint64_t>(alex.model_size()) + static_cast<uint64_t>(alex.data_size());
 }

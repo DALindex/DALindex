@@ -5,6 +5,31 @@
 using namespace std;
 
 template<class Type_Key, class Type_Ts>
+inline void pgm_erase(  pgm::DynamicPGMIndex<Type_Key,Type_Ts,pgm::PGMIndex<Type_Key,FANOUT_BP>> & pgm,
+                        pair<Type_Key, Type_Ts> & arrivalTuple)
+{
+    vector<Type_Key> deleteKeys;
+    deleteKeys.reserve(1000); //Predefined size to prevent vector extending
+    Type_Ts lowerLimit =  ((double)arrivalTuple.second - TIME_WINDOW < numeric_limits<Type_Ts>::min()) 
+                            ? numeric_limits<Type_Ts>::min(): arrivalTuple.second - TIME_WINDOW;
+                            
+    auto it = pgm.begin();
+    while (it != pgm.end())
+    {
+        if (it->second < lowerLimit)
+        {
+            deleteKeys.push_back(it->first);
+        }
+        ++it;
+    }
+
+    for (auto &key:deleteKeys)
+    {
+        pgm.erase(key);
+    }
+}
+
+template<class Type_Key, class Type_Ts>
 inline void pgm_range_search(  pgm::DynamicPGMIndex<Type_Key,Type_Ts,pgm::PGMIndex<Type_Key,FANOUT_BP>> & pgm,
                                 pair<Type_Key, Type_Ts> & arrivalTuple, Type_Key & searchRange, vector<pair<Type_Key, Type_Ts>> & searchResult)
 {
@@ -61,4 +86,10 @@ inline bool pgm_point_lookup(  pgm::DynamicPGMIndex<Type_Key,Type_Ts,pgm::PGMInd
         return true;
     }
     return false;
+}
+
+template<class Type_Key, class Type_Ts>
+inline int pgm_get_total_size_in_bytes(  pgm::DynamicPGMIndex<Type_Key,Type_Ts,pgm::PGMIndex<Type_Key,FANOUT_BP>> & pgm)
+{
+   return pgm.size_in_bytes();
 }

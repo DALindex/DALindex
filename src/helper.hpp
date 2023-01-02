@@ -46,6 +46,9 @@ template<class Type_Key, class Type_Ts>
 void calculate_split_index_shrinking_cone(vector<pair<Type_Key,Type_Ts>> & data, vector<tuple<int,int,double>> &splitIndexSlopeVector, int & splitError);
 
 template<class Type_Key, class Type_Ts>
+void calculate_split_index_shrinking_cone_least_sqaure(vector<pair<Type_Key,Type_Ts>> & data, vector<tuple<int,int,double>> &splitIndexSlopeVector, int & splitError);
+
+template<class Type_Key, class Type_Ts>
 void calculate_split_index_shrinking_cone(vector<Type_Key> & data, vector<tuple<int,int,double>> &splitIndexSlopeVector, int & splitError);
 
 template<class Type_Key, class Type_Ts>
@@ -336,6 +339,83 @@ void calculate_split_index_shrinking_cone(vector<pair<Type_Key,Type_Ts>> & data,
 
     #ifdef DEBUG
     cout << "[Debug Info:] Util Function {calculate_split_index_shrinking_cone(data, slplitIndexSlope, splitError)} End" << endl;
+    cout << "Shrinking Cone Split:" << endl;
+    for (auto &it: splitIndexSlopeVector)
+    {
+        cout << "start = " << get<0>(it) << ", end = " << get<1>(it) << ", slope = " << get<2>(it) << endl;
+    }
+    cout <<endl;
+    #endif
+}
+
+template<class Type_Key, class Type_Ts>
+void calculate_split_index_shrinking_cone_least_sqaure(vector<pair<Type_Key,Type_Ts>> & data, vector<tuple<int,int,double>> &splitIndexSlopeVector, int & splitError)
+{
+    #ifdef DEBUG
+    cout << "[Debug Info:] Util Function {calculate_split_index_shrinking_cone_least_sqaure(data, slplitIndexSlope, splitError)} Start" << endl;
+    cout << "[Debug Info:] size of DualData = " << data.size() << endl;
+    cout << endl;
+    #endif
+
+    double slopeLow = 0;
+    double slopeHigh = numeric_limits<double>::max();
+    double slope = 1;
+
+    double keyStart = data.front().first;
+    
+    int index = 1;
+    int splitIndexStart = 0; 
+    int splitIndexEnd = 1;
+
+    double sumKey = (double)keyStart,sumIndex = 1, sumKeyIndex = 0, sumKeySquared = (double)pow(keyStart,2);
+    for (auto it = data.begin()+1; it != data.end(); it++)
+    {
+        double denominator = it->first - keyStart;
+
+        if (slopeLow <= (double)(index) / denominator &&
+		    (double)(index) / denominator <= slopeHigh) 
+        {
+            #ifdef DEBUG
+            double slopeHighTemp = ((double)(index + GLOBAL_ERROR)) / denominator;
+ 		    double slopeLowTemp = ((double)(index - GLOBAL_ERROR)) / denominator;
+            #endif
+            
+            slopeHigh = min(slopeHigh,(((double)(index + splitError)) / denominator));
+            slopeLow = max(slopeLow, (((double)(index - splitError)) / denominator));
+
+            sumKey += (double)it->first;
+            sumIndex += index;
+            sumKeyIndex += (double)it->first * index;
+            sumKeySquared += (double)pow(it->first,2);
+            slope = (sumKeyIndex - sumKey *(sumIndex/index))/(sumKeySquared - sumKey*(sumKey/index));
+
+            index++;
+        }
+        else
+        {            
+            splitIndexSlopeVector.push_back(make_tuple(splitIndexStart,splitIndexEnd-1,slope));
+            
+            splitIndexStart = splitIndexEnd;
+
+            index = 1;
+            keyStart = it->first;
+            slopeLow = 0;
+            slopeHigh = numeric_limits<double>::max();
+
+            sumKey = (double)it->first;
+            sumIndex = 0;
+            sumKeyIndex = 0;
+            sumKeySquared = (double)pow(it->first,2);
+            slope = 1;
+        }
+
+        splitIndexEnd++;
+    }
+    
+    splitIndexSlopeVector.push_back(make_tuple(splitIndexStart,splitIndexEnd-1,slope));
+
+    #ifdef DEBUG
+    cout << "[Debug Info:] Util Function {calculate_split_index_shrinking_cone_least_sqaure(data, slplitIndexSlope, splitError)} End" << endl;
     cout << "Shrinking Cone Split:" << endl;
     for (auto &it: splitIndexSlopeVector)
     {

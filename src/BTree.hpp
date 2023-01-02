@@ -5,6 +5,32 @@
 using namespace std;
 
 template<class Type_Key, class Type_Ts>
+inline void bt_erase( stx::btree_map<Type_Key,Type_Ts,less<Type_Key>,btree_traits_fanout<Type_Key>> & btree,
+                      pair<Type_Key, Type_Ts> & arrivalTuple)
+{
+    vector<Type_Key> deleteKeys;
+    deleteKeys.reserve(1000); //Predefined size to prevent vector extending
+    Type_Ts lowerLimit =  ((double)arrivalTuple.second - TIME_WINDOW < numeric_limits<Type_Ts>::min()) 
+                            ? numeric_limits<Type_Ts>::min(): arrivalTuple.second - TIME_WINDOW;
+
+    auto it = btree.begin();
+    while (it != btree.end())
+    {
+        if (it->second < lowerLimit)
+        {
+            deleteKeys.push_back(it->first);
+        }
+        it++;
+    }
+
+    for (auto &key:deleteKeys)
+    {
+        btree.erase(key);
+    }
+}
+
+
+template<class Type_Key, class Type_Ts>
 inline void bt_range_search(  stx::btree_map<Type_Key,Type_Ts,less<Type_Key>,btree_traits_fanout<Type_Key>> & btree,
                                 pair<Type_Key, Type_Ts> & arrivalTuple, Type_Key & searchRange, vector<pair<Type_Key, Type_Ts>> & searchResult)
 {
@@ -79,4 +105,20 @@ inline bool bt_point_lookup(  stx::btree_map<Type_Key,Type_Ts,less<Type_Key>,btr
         return true;
     }
     return false;
+}
+
+template<class Type_Key, class Type_Ts>
+inline uint64_t bt_get_total_size_in_bytes(  stx::btree_map<Type_Key,Type_Ts,less<Type_Key>,btree_traits_fanout<Type_Key>> & btree)
+{
+    struct node
+    {
+        unsigned short level;
+        unsigned short slotuse;
+    };
+    
+    auto btreeStats = btree.get_stats();
+    
+    return sizeof(btree) + sizeof(node) * (btreeStats.leaves + btreeStats.innernodes) + 
+    sizeof(Type_Key) * btreeStats.innerslots * btreeStats.innernodes + sizeof(node*) * (btreeStats.innerslots+1) * btreeStats.innernodes +
+    sizeof(Type_Key) * btreeStats.leafslots * btreeStats.leaves + sizeof(Type_Ts) * btreeStats.leafslots * btreeStats.leaves + sizeof(node*)*2;
 }

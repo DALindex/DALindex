@@ -1,4 +1,4 @@
-#pragma onceDPSeg
+#pragma once
 
 #include <iostream>
 #include <algorithm>
@@ -88,6 +88,7 @@ public:
     void set_split_error(int error);
     void print();
     void print_all();
+    uint64_t get_total_size_in_bytes();
 
     bool bitmap_exists(int index) const;
     bool bitmap_exists(vector<uint64_t> & bitmap, int index) const;
@@ -2253,6 +2254,22 @@ void  DALroot<Type_Key,Type_Ts>::print_all()
         }
     }
     cout << endl;
+}
+
+template <class Type_Key, class Type_Ts>
+inline uint64_t DALroot<Type_Key,Type_Ts>::get_total_size_in_bytes()
+{
+    uint64_t leafSize = 0;
+    for (int i = 0; i < m_keys.size(); i++)
+    {
+        if (bitmap_exists(i))
+        {
+            leafSize += m_ptr[i]->get_total_size_in_bytes();
+        }
+    }
+
+    return sizeof(int)*5 + sizeof(double) + sizeof(Type_Key) + sizeof(vector<uint64_t>)*2 + sizeof(uint64_t)*(m_bitmap.size()*2) +
+    sizeof(vector<Type_Key>) + sizeof(Type_Key) * m_keys.size() + sizeof(vector<DALseg<Type_Key,Type_Ts>*>) + sizeof(DALseg<Type_Key,Type_Ts>*) * m_keys.size() + leafSize;
 }
 
 
